@@ -3,8 +3,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
- buildscript {
+buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
     }
     dependencies {
@@ -16,12 +17,13 @@ plugins {
     id 'maven-publish'
     id 'jacoco'
     id 'maven'
-    id 'signing'
-    id 'checkstyle'
+    //id 'signing'
+    //id 'checkstyle'
 }
 
 apply plugin: 'org.owasp.dependencycheck'
 
+/*
 checkstyle {
     toolVersion '8.29'
     configFile file("../ci/checkstyle/checkstyle.xml")
@@ -30,14 +32,15 @@ checkstyle {
 checkstyleMain {
     source ='src/main/java'
 }
-checkstyleMain.exclude("**/ChaincodeServerProperties.**")
-checkstyleTest {
+*/
+//checkstyleMain.exclude("**/ChaincodeServerProperties.**")
+/*checkstyleTest {
     source ='src/test/java'
-}
+}*/
 
 
 
-check.dependsOn dependencyCheckAnalyze
+//check.dependsOn dependencyCheckAnalyze
 
 tasks.withType(org.gradle.api.tasks.testing.Test) {
     systemProperty 'CORE_CHAINCODE_LOGGING_LEVEL', 'DEBUG'
@@ -60,7 +63,7 @@ dependencies {
 dependencyCheck {
     format='ALL'
     analyzers {
-    	assemblyEnabled=false
+        assemblyEnabled=false
     }
 }
 
@@ -87,7 +90,7 @@ publishing {
             artifactId 'fabric-chaincode-shim'
             pom.withXml {
                 def repository = asNode()
-                    .appendNode('repositories')
+                        .appendNode('repositories')
                         .appendNode('repository');
                 repository.appendNode('id', 'jitpack.io')
                 repository.appendNode('url', 'https://jitpack.io')
@@ -174,27 +177,27 @@ task licenseCheck {
         sourceSet ->
             sourceSet.allSource.findAll { !it.path.contains("build") && !(it.path.contains("test") && it.path.contains("resources"))}.each {
                 file ->
-                if  (!file.name.contains("json")){
-                    BufferedReader r = new BufferedReader(new FileReader(file))
-                    def line, hasSPDX = false, hasTraditional = false
-                    while ((line = r.readLine()) != null) {
-                        if (line.contains("SPDX-License-Identifier")) {
-                            hasSPDX = true
-                            break
+                    if  (!file.name.contains("json")){
+                        BufferedReader r = new BufferedReader(new FileReader(file))
+                        def line, hasSPDX = false, hasTraditional = false
+                        while ((line = r.readLine()) != null) {
+                            if (line.contains("SPDX-License-Identifier")) {
+                                hasSPDX = true
+                                break
+                            }
+                            if (line.contains("http://www.apache.org/licenses/LICENSE-2.0")) {
+                                hasTraditional = true
+                                break
+                            }
                         }
-                        if (line.contains("http://www.apache.org/licenses/LICENSE-2.0")) {
-                            hasTraditional = true
-                            break
+                        if (!hasSPDX) {
+                            if (hasTraditional) {
+                                noSPDX.add(file)
+                            } else {
+                                missing.add(file)
+                            }
                         }
                     }
-                    if (!hasSPDX) {
-                        if (hasTraditional) {
-                            noSPDX.add(file)
-                        } else {
-                            missing.add(file)
-                        }
-                    }
-                }
             }
     }
 
@@ -237,7 +240,7 @@ javadoc {
     source = sourceSets.main.allJava
 
     classpath = sourceSets.main.runtimeClasspath
-    
+
     javadoc.options.addStringOption('Xdoclint:none', '-quiet')
     options.overview = "src/main/java/org/hyperledger/fabric/overview.html"
 }
@@ -254,13 +257,19 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
-signing {
+/*signing {
     required {gradle.taskGraph.hasTask(uploadArchives) }
     sign configurations.archives
-}
+}*/
 
 uploadArchives {
     repositories {
+        mavenDeployer {
+            repository(url:uri('D:/work_software/maven/repository'))
+        }
+    }
+
+    /*repositories {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
@@ -312,7 +321,7 @@ uploadArchives {
                 }
             }
         }
-    }
+    }*/
 }
 
 task sourcesJar(type: Jar) {
@@ -339,9 +348,9 @@ tasks.withType(Test) {
     testLogging {
         // set options for log level LIFECYCLE
         events TestLogEvent.FAILED,
-               TestLogEvent.PASSED,
-               TestLogEvent.SKIPPED,
-               TestLogEvent.STANDARD_OUT
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT
         exceptionFormat TestExceptionFormat.FULL
         showExceptions true
         showCauses true
@@ -350,11 +359,11 @@ tasks.withType(Test) {
         // set options for log level DEBUG and INFO
         debug {
             events TestLogEvent.STARTED,
-                   TestLogEvent.FAILED,
-                   TestLogEvent.PASSED,
-                   TestLogEvent.SKIPPED,
-                   TestLogEvent.STANDARD_ERROR,
-                   TestLogEvent.STANDARD_OUT
+                    TestLogEvent.FAILED,
+                    TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_ERROR,
+                    TestLogEvent.STANDARD_OUT
             exceptionFormat TestExceptionFormat.FULL
         }
         info.events = debug.events

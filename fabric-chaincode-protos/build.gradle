@@ -8,7 +8,7 @@ apply plugin: 'de.undercouch.download'
 apply plugin: 'maven-publish'
 
 apply plugin: 'maven'
-apply plugin: 'signing'
+//apply plugin: 'signing'
 
 repositories {
     maven { url "https://plugins.gradle.org/m2/" }
@@ -92,8 +92,8 @@ task downloadProtoFiles {
         protoFiles.each { k, v ->
             download {
                 src "$fabricRepo/$fabricBranch/$k"
-                    dest v
-                    onlyIfModified true
+                dest v
+                onlyIfModified true
             }
         }
     }
@@ -132,13 +132,18 @@ task javadocJar(type: Jar) {
     from javadoc
 }
 
-signing {
+/*signing {
     required {gradle.taskGraph.hasTask(uploadArchives) }
     sign configurations.archives
-}
+}*/
 
 uploadArchives {
     repositories {
+        mavenDeployer {
+            repository(url:uri('D:/work_software/maven/repository'))
+        }
+    }
+    /*repositories {
         mavenDeployer {
             beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
@@ -190,7 +195,7 @@ uploadArchives {
                 }
             }
         }
-    }
+    }*/
 }
 
 task sourcesJar(type: Jar) {
